@@ -58,6 +58,16 @@
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
   }
+  .stage:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    max-width: none;
+    background: #0d0d0f;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .stage::backdrop { background: #0d0d0f; }
   /* 1440x810 canvas inside stage - scale content via CSS vars */
   .canvas {
     position: absolute;
@@ -1902,7 +1912,9 @@
     const scaleX = rect.width / 1440;
     const scaleY = rect.height / 810;
     const s = Math.min(scaleX, scaleY);
-    canvas.style.transform = `scale(${s})`;
+    const tx = (rect.width - 1440 * s) / 2;
+    const ty = (rect.height - 810 * s) / 2;
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
     canvas.style.width = '1440px';
     canvas.style.height = '810px';
   }
@@ -1935,6 +1947,12 @@
     onControlsUserActivity();
   });
   scaleCanvas();
+  document.addEventListener('fullscreenchange', () => {
+    requestAnimationFrame(scaleCanvas);
+  });
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => scaleCanvas()).observe(stage);
+  }
 
   function goTo(n) {
     n = Math.max(1, Math.min(TOTAL, n));
